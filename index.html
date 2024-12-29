@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pincode Lookup - Search</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Pincode Lookup</h1>
+    <form id="pincode-form">
+      <input type="text" id="pincode" placeholder="Enter Pincode" maxlength="6">
+      <button type="submit">Lookup</button>
+    </form>
+    <div id="message"></div>
+  </div>
+  <script>
+    const form = document.getElementById("pincode-form");
+    const pincodeInput = document.getElementById("pincode");
+    const messageDiv = document.getElementById("message");
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const pincode = pincodeInput.value.trim();
+
+      if (pincode.length !== 6 || isNaN(pincode)) {
+        messageDiv.textContent = "Please enter a valid 6-digit pincode.";
+        return;
+      }
+
+      // Navigate to results page with the pincode as a query parameter
+      window.location.href = `results.html?pincode=${pincode}`;
+    });
+  </script>
+</body>
+</html>

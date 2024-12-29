@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pincode Lookup - Results</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Pincode Lookup Results</h1>
+    <p><strong>Pincode:</strong> <span id="pincode-result"></span></p>
+    <input type="text" id="filter" placeholder="Filter by post office name">
+    <div id="message"></div>
+    <div id="loader" class="loader hidden"></div>
+    <div id="post-offices"></div>
+  </div>
+  <script>
+    const pincodeResult = document.getElementById("pincode-result");
+    const postOfficesContainer = document.getElementById("post-offices");
+    const filterInput = document.getElementById("filter");
+    const messageDiv = document.getElementById("message");
+    const loader = document.getElementById("loader");
+
+    let postOffices = [];
+
+    // Fetch the pincode from URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const pincode = urlParams.get("pincode");
+
+    if (!pincode) {
+      messageDiv.textContent = "No pincode provided.";
+    } else {
+      pincodeResult.textContent = pincode;
+      fetchPincodeData(pincode);
+    }
+
+    async function fetchPincodeData(pincode) {
+      loader.classList.remove("hidden");
+      try {
+        const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+        const data = await response.json();
+
+        if (data[0].Status !== "Success") {
+          showMessage(data[0].Message || "Failed to fetch data.");
+          return;
+        }
+
+        postOffices = data[0].PostOffice || [];
+        if (postOffices.length === 0) {
+          showMessage("No post office data available for this pincode.");
+          return;
+        }
+
+        displayPostOffices(postOffices);
+      } catch (error) {
+        showMessage("An error occurred while fetching data. Please try again.");
+      } finally {
+        loader.classList.add("hidden");
+      }
+    }
+
+    filterInput.addEventListener("input", (e) => {
+      const filter = e.target.value.toLowerCase();
+      const filteredOffices = postOffices.filter((office) =>
+        office.Name.toLowerCase().includes(filter)
+      );
+
+      if (filteredOffices.length === 0) {
+        showMessage("Couldn't find the postal data you're looking for...");
+      } else {
+        displayPostOffices(filteredOffices);
+      }
+    });
+
+    function showMessage(msg) {
+      messageDiv.textContent = msg;
+      messageDiv.classList.remove("hidden");
+      postOfficesContainer.innerHTML = "";
+    }
+
+    function displayPostOffices(offices) {
+      messageDiv.classList.add("hidden");
+      postOfficesContainer.innerHTML = offices
+        .map(
+          (office) => `
+        <div class="post-office">
+          <p><strong>Name:</strong> ${office.Name}</p>
+          <p><strong>Branch Type:</strong> ${office.BranchType}</p>
+          <p><strong>Delivery Status:</strong> ${office.DeliveryStatus}</p>
+          <p><strong>District:</strong> ${office.District}</p>
+          <p><strong>State:</strong> ${office.State}</p>
+        </div>`
+        )
+        .join("");
+    }
+  </script>
+</body>
+</html>
